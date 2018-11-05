@@ -13,3 +13,10 @@ var circle = svg.append("circle")
 	.attr("cy", 250)
 	.attr("r", 70)
 	.attr("fill", "grey");
+
+
+var circle2 = svg.append("circle")
+								.attr("cx",200)
+								.attr("cy",200)
+								.attr("r",50)
+								.attr("fill", "red")

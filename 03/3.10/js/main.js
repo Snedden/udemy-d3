@@ -29,15 +29,15 @@ g.append("text")
 // Y Label
 g.append("text")
     .attr("class", "y axis-label")
-    .attr("x", - (height / 2))
-    .attr("y", -60)
+    .attr("transform", "rotate(-90)")
+    .attr("x", -60)
+    //.attr("y", (height / 2))
     .attr("font-size", "20px")
     .attr("text-anchor", "middle")
-    .attr("transform", "rotate(-90)")
-    .text("Height (m)");
+    .text("Heighdt (m)");
 
 d3.json("data/buildings.json").then(function(data){
-    console.log(data);
+    console.log("data",data);
 
     data.forEach(function(d){
         d.height = +d.height;
@@ -50,9 +50,9 @@ d3.json("data/buildings.json").then(function(data){
         .paddingOuter(0.3);
 
     var y = d3.scaleLinear()
-        .domain([0, d3.max(data, function(d){
+        .domain([d3.max(data, function(d){
             return d.height;
-        })])
+        }),0])
         .range([0, height]);
 
     var xAxisCall = d3.axisBottom(x);
@@ -80,10 +80,12 @@ d3.json("data/buildings.json").then(function(data){
     
     rects.enter()
         .append("rect")
-            .attr("y", 0)
+            .attr("y", (d) => {
+                return height - y(d.height)
+            })
             .attr("x", function(d){ return x(d.name); })
             .attr("width", x.bandwidth)
-            .attr("height", function(d){ return y(d.height); })
+            .attr("height", function(d){ return y( d.height); })
             .attr("fill", "grey");
 
 })

@@ -83,7 +83,7 @@ function update(data) {
         .data(data);
 
     // EXIT old elements not present in new data.
-    rects.exit().remove();
+    //rects.exit().remove();
 
     // UPDATE old elements present in new data.
     rects

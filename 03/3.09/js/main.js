@@ -4,7 +4,7 @@
 *    3.9 - Margins and groups
 */
 
-var margin = { left:100, right:10, top:10, bottom:100 };
+var margin = { left:100, right:10, top:10, bottom:150 };
 
 var width = 600 - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
@@ -38,6 +38,33 @@ d3.json("data/buildings.json").then(function(data){
         })])
         .range([0, height]);
 
+    var xAxis = d3.axisBottom(x);
+    g.append("g")
+        .attr("class","xAxis")
+        .attr("transform", "translate(0,"+height+")")
+        .call(xAxis)
+            .selectAll("text")
+            .attr("x",-5)
+            .attr("y",10)
+            .attr("text-anchor","end")
+            .attr("transform","rotate(-40)");
+
+     var yAxis = d3.axisLeft(y)
+        .ticks(3)
+        .tickFormat((d) => {
+            return d + "m";
+        });
+    g.append("g")
+        .attr("class","yAxis")
+        .call(yAxis);              
+
+    g.append("text")
+        .attr("class","label")
+        .attr("x", width/2)
+        .attr("y", height + 140)
+        .style("font-size","20px")
+        .attr("text-anchor", "middle")
+        .text("Worlds tallest buildings");    
     var rects = g.selectAll("rect")
         .data(data)
         
