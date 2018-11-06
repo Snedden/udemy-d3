@@ -22,45 +22,42 @@ var g = svg.append("g")
 
 
 var monthLabel = g.append("text")
-									.attr("y", height +50)
-									.attr("x", width/2)
-									.attr("text-anchor","middle")
-									.attr("font-size", "20px")
-									.text("Month")
+					.attr("y", height +50)
+					.attr("x", width/2)
+					.attr("text-anchor","middle")
+					.attr("font-size", "20px")
+					.text("Month")
 
 var revenueLabel =  g.append("text")
-											.attr("transform","rotate(-90)")
-											.attr("x",-height/2)
-											.attr("y",-50)
-											.attr("font-size", "20px")
-											.text("Revenue")
+						.attr("transform","rotate(-90)")
+						.attr("x",-height/2)
+						.attr("y",-50)
+						.attr("font-size", "20px")
+						.text("Revenue")
 
 d3.json("data/revenues.json").then((data) => {
 	console.log("data:", data);
 
 	var monthScale = d3.scaleBand()
-										.domain(data.map((d) => {
-											return d.month;
-										}))
-										.range([0,width])
-										.paddingInner(0.3)
-										.paddingOuter(0.5)
-  var x = d3.scaleBand()
-    .domain(data.map(function(d){ return d.month }))
-    .range([0, width])
-    .padding(0.2);							
+						.domain(data.map((d) => {
+							return d.month;
+						}))
+						.range([0,width])
+						.paddingInner(0.3)
+						.paddingOuter(0.5)
+
 
 	var revenueScale = d3.scaleLinear()
-											.domain([0,d3.max(data, (d) => {
-												return d.revenue;
-											})])
-											.range([height, 0]);
+						.domain([0,d3.max(data, (d) => {
+							return d.revenue;
+						})])
+						.range([height, 0]);
 
 	var profitsScale = d3.scaleLinear()
-												.domain([0,d3.max(data, (d) => {
-													return d.profit;
-												})])
-												.range([height, 0])
+							.domain([0,d3.max(data, (d) => {
+								return d.profit;
+							})])
+							.range([height, 0])
 
 	var monthAxis = d3.axisBottom(monthScale);											
   var revenuesAxis = d3.axisLeft(revenueScale);
