@@ -71,6 +71,12 @@ d3.json("data/data.json").then(function(data){
 											return d.income
 										})
 									});
+  var minIncome = d3.min(formattedData , (yearData) =>{
+										return d3.min(yearData.countries, (d) => {
+											//console.log("yearData ", d)
+											return d.income
+										})
+									});
 
   var maxPopulation = d3.max(formattedData , (yearData) =>{
 										return d3.max(yearData.countries, (d) => {
@@ -86,24 +92,52 @@ d3.json("data/data.json").then(function(data){
 										})
 									});
 
-  console.log("Max ",maxPopulation)
+  console.log("Max ",maxIncome, " Min", minIncome)
 
   console.log("formattedData ",formattedData);
-  console.log("formattedData ",formattedData[1800]); 
+  console.log("formattedData ",formattedData[18]); 
 	var populationScale = d3.scaleLinear()
 									.domain([0, maxPopulation])
 									.range([0,width ]);
 
-	var gdpScale = d3.scaleLinear()
-									.domain([0, maxIncome])
-									.range([height,0 ]); 	
+	var gdpScale = d3.scaleLog()
+									.base(10)
+									.domain([minIncome, maxIncome])
+									.range([0,width ]);
+
+	var x = d3.scaleLog()
+    .base(10)
+    .range([0, width])
+    .domain([142, 150000]);
+
+	var lifeExpScale = d3.scaleLinear()
+											.domain([0,maxlifeExpt])
+											.range([height,0])									
 
 	
- var xAxis = d3.axisBottom(populationScale);
+ var xAxis = d3.axisBottom(gdpScale)
+ 							.tickFormat((d) => {
+ 								return d + "$";
+ 							})
+ 							.tickValues([200,1000,8000,20000,182668]);
  xAxisGroup.call(xAxis);
 
- var yAxis = d3.axisLeft(gdpScale);
+ var yAxis = d3.axisLeft(lifeExpScale);
  yAxisGroup.call(yAxis);				
+
+ var circles = g.selectAll("circles")
+ 								.data(formattedData[0].countries)
+ 								
+
+console.log("circles ", circles)
+ 
+ circles
+ 	.enter()
+ 	.append("circle")
+ 		.attr("cx",(d) => { return gdpScale(d.income)})
+ 		.attr("cy",(d) => { return lifeExpScale(d.life_exp)})
+ 		.attr("r", (d =>  {return populationScale(d.population/5)}))
+ 		.attr("fill","gray")
 
 
 })
