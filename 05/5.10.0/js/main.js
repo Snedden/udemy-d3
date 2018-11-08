@@ -101,8 +101,18 @@ d3.json("data/data.json").then(function(data){
                                     });
 
 
+    var toolTip = d3.tip().attr("class", "d3-tip")
+    	.html((d) => {
+    		var text = "<strong>Country:</strong><span style='color:red'>" +d.country+"</span></br>";
+    		text += "<strong>Continent:</strong><span style='color:red,text-transform:capitalize'" +d.continent+"</span></br>";
+    		text += "<strong>GDP:</strong><span style='color:red'>" + d3.format("$,.0f")(d.income)+"</span></br>";
+    		text += "<strong>Life Expentency:</strong><span style='color:red'>" +d3.format("1.1f")(d.life_exp)+"</span></br>";
+    		text += "<strong>Population:</strong><span style='color:red'>" +d3.format(",.0f")(d.population)+"</span></br>";
+    		return text
+    	})
 
-	  console.log("formattedData ",formattedData);
+    g.call(toolTip);	
+	 // console.log("formattedData ",formattedData);
 
     //Scales
     var populationScale = d3.scaleLinear()
@@ -164,16 +174,24 @@ d3.json("data/data.json").then(function(data){
 		.text((d )=> d)
     var i = 0;
 
-    d3.interval(() => {
-        update(formattedData[i]);
-        i++;
+   var interval =  d3.interval(() => {
+   			if(i< formattedData.length){
+   				update(formattedData[i]);	
+   				i++;
+   			}
+   			else{
+   				interval.stop();
+   				return;
+   			}
+        
+        
         },100);
 
     function update(yearData){
         yearLabel.text(yearData.year);
         var t = d3.transition()
             .duration(100);
-        console.log("yearData ",yearData);
+        //console.log("yearData ",yearData);
         // JOIN new data with old elements.
         var circles = g.selectAll("circle").data(yearData.countries, function(d){
             return d.country;
@@ -189,6 +207,8 @@ d3.json("data/data.json").then(function(data){
             .attr("fill",(d,i) => {return countryColorScale(d.continent)})
             .attr("stroke", "black")
             .attr("fill-opacity","0.5")
+            .on("mouseover",toolTip.show)
+            .on("mouseout", toolTip.hide)
             .merge(circles)
                 .attr("cx",(d) => { return gdpScale(d.income)})
                 .attr("cy",(d) => { return lifeExpScale(d.life_exp)})
