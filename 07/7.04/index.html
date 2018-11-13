@@ -20,7 +20,7 @@
     <nav class="navbar navbar-default"></nav>
     <svg width="600" height="400"></svg>
 
-<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.7.0/d3.js"></script>
 
 <script>
 
@@ -31,7 +31,53 @@
         g = svg.append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+
     var parseTime = d3.timeParse("%d-%b-%y");
+    
+    var closeScale = d3.scaleLinear()
+                        .rangeRound([height, 0]);
+    var dateScale = d3.scaleTime()
+                        .rangeRound([0, width]); 
+    var area = d3.area()
+                    .x((d) => dateScale(d.date))
+                    .y0(closeScale(0))
+                    .y1((d) => closeScale(d.close)) 
+
+    d3.tsv("data/area.tsv").then((data) => {
+    data.map((d) => {
+            d.date = parseTime(d.date);
+            d.close = +d.close;
+            //console.log("d" ,d);
+            return d;
+        });
+    //console.log("data ", data);
+    drawAreaChart(data)
+    }) ;
+
+    function drawAreaChart(data){
+
+        closeScale.domain([0, d3.max(data, (d) => d.close )]);
+        dateScale.domain(d3.extent(data, (d) => d.date));
+
+
+        var closeAxisCall = d3.axisLeft(closeScale)
+        var costAxis = g.append("g")
+                        .attr("id", "costAxis")
+                        .call(closeAxisCall)
+        var dateAxis = g.append("g")
+                        .attr("id", "dateAxis")
+                        .attr("transform", "translate(0,"+height+")")
+                        .call(d3.axisBottom(dateScale));
+
+        g.append("g")
+            .attr("id","drawAreaChart")
+            .append("path")
+                .attr("fill","aqua")  
+                .attr("d", area(data))              
+
+    }                  
+
+/*    var parseTime = d3.timeParse("%d-%b-%y");
 
     var x = d3.scaleTime()
         .rangeRound([0, width]);
@@ -71,7 +117,7 @@
             .attr("dy", "0.71em")
             .attr("text-anchor", "end")
             .text("Price ($)");
-    });
+    });*/
     
 </script>
 

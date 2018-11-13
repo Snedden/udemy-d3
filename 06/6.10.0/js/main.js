@@ -16,14 +16,14 @@ var svg = d3.select("#chart-area").append("svg")
 var g = svg.append("g")
     .attr("transform", "translate("+margin.left+","+margin.top+")")
 
+//Data
+var cleanData = {}; 
+
 //Scales
 var priceScale = d3.scaleLinear()
         .range([height,0])
 var timeScale = d3.scaleTime()
         .range([0,width])
-
-//data
-var data;
 
 //Axis
 var xAxisCall = d3.axisBottom(timeScale)
@@ -48,49 +48,102 @@ g.append("path")
     .attr("stroke-width","3px")
 
 //transition
-var duration = 300;
-var t = d3.transition(duration);
+var duration = 1000;
+//var t = d3.transition().duration(duration);
+var t = function(){ return d3.transition().duration(1000).ease(d3.easeLinear);; }
 
-//Get data
-d3.json("data/coins.json").then((d) => {
-    
-    data = d;
-    update($("#coin-select").val());
-    //Selector
-    $("#coin-select").change(function() {
-        //console.log(this);
-        update(this.value)
-    })
-    
+
+
+// Add jQuery UI slider
+$("#date-slider").slider({
+    range: true,
+    max: parsedDate("31/10/2017").getTime(),
+    min: parsedDate("12/5/2013").getTime(),
+    step: 86400000, // One day
+    values: [parsedDate("12/5/2013").getTime(), parsedDate("31/10/2017").getTime()],
+    slide: function(event, ui){
+        $("#dateLabel1").text(formatDate(new Date(ui.values[0])));
+        $("#dateLabel2").text(formatDate(new Date(ui.values[1])));
+        update();
+    }
 });
 
-function update(coinType){
+//Get data
+d3.json("data/coins.json").then((data) => {
 
-    var coinData = data[coinType];
-    var cleanData = coinData.filter((d) => {
-       return (d.price_usd)     
-    }).map((d) => {
-        d.price_usd =+ d.price_usd;
-        d.market_cap =+ d.market_cap;
-        d.date = parsedDate(d.date);
-        return d;
+    //Default selections
+    var coinType = 'bitcoin';
+    var selectedVar = 'price_usd';
+
+
+    //console.log("original data", data.bitcoin);
+    for(var coinType in data){
+        cleanData[coinType] = data[coinType].filter((d) => {
+            return (d.price_usd)
+        }).map((d) => {
+            var obj = {};
+            obj.price_usd =+ d.price_usd;
+            obj.market_cap =+ d.market_cap;
+            obj["24h_vol"] =+ d["24h_vol"];
+            obj.date = parsedDate(d.date);
+        return obj;
+        });
+    }
+
+    //coin Selector listener
+    $("#coin-select").change(function() {
+        update();
+    });
+
+    //var Selector listener
+    $("#var-select").change(function() {
+        update();
     })
 
-    priceScale.domain(d3.extent(cleanData.map((d) => d.price_usd)));
-    yAxisCall.scale(priceScale);
-    yAxis.call(yAxisCall);
+    update();
+});
 
-    timeScale.domain(d3.extent(cleanData.map((d)=>  d.date)))
-    xAxisCall.scale(timeScale).tickFormat((d) => formatDate(d))
-    xAxis.call(xAxisCall)
+function update(){
+   
+    var coinType = $("#coin-select").val();
+    var selectedVar = $("#var-select").val();
+
+    var sliderValues = $("#date-slider").slider("values");
+    var dataTimeFiltered = cleanData[coinType].filter(function(d){
+        return ((d.date >= sliderValues[0]) && (d.date <= sliderValues[1]))
+    });
+
+    console.log("cleanData ", cleanData);
+    priceScale.domain(d3.extent(dataTimeFiltered.map((d) => d[selectedVar])));
+    yAxisCall.scale(priceScale);
+    yAxisCall.tickFormat((x) => {
+        var sig2 = d3.format(".2s");
+        return sig2(x);
+    })
+    yAxis.transition(t).call(yAxisCall);
+
+      // Fix for format values
+    var formatSi = d3.format(".2s");
+    function formatAbbreviation(x) {
+      var s = formatSi(x);
+      switch (s[s.length - 1]) {
+        case "G": return s.slice(0, -1) + "B";
+        case "k": return s.slice(0, -1) + "K";
+      }
+      return s;
+    }
+
+    timeScale.domain(d3.extent(dataTimeFiltered.map((d)=>  d.date)));
+    xAxisCall.scale(timeScale).tickFormat((d) => formatDate(d));
+    xAxis.call(xAxisCall);
 
     var line = d3.line()
         .x((d) => timeScale(d.date))
-        .y((d) => priceScale(d.price_usd))
+        .y((d) => priceScale(d[selectedVar]));
 
     g.select(".line")
         .transition(t)
-        .attr("d",line(cleanData))    
+        .attr("d",line(dataTimeFiltered));    
 
-    console.log("bitCoinData ",d3.extent(cleanData.map((d)=>  d.date)));
+    //console.log("bitCoinData ",d3.extent(coinData.map((d)=>  d.date)));
 }
